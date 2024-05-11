@@ -1,16 +1,63 @@
-import express, { Request, Response } from 'express'
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Request, Response } from 'express';
+import morgan from 'morgan';
+import dbConnection from '../src/config/dbConnection';
+import errorHandler from './helpers/errorHandler';
+import adminRoutes from './routes/adminRoutes';
+import authRoutes from './routes/authRoutes';
+import jobRoutes from './routes/jobRoutes';
 
-const app = express()
-const port = process.env.PORT || 8080
+// environment config
+dotenv.config();
 
-app.get('/', (_req: Request, res: Response) => {
-	return res.send('Express Typescript on Vercel')
-})
+// PORT & HOST_NAME
+const PORT: number = Number(process.env.PORT) || 5000;
 
-app.get('/ping', (_req: Request, res: Response) => {
-	return res.send('pong 🏓')
-})
+const HOST_NAME: string = process.env.HOST_NAME || 'localhost';
 
-app.listen(port, () => {
-	return console.log(`Server is listening on ${port}`)
-})
+// db config
+dbConnection();
+
+const app = express();
+
+// morgan config
+app.use(morgan('dev'));
+
+// body-parser
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// cors-policy
+app.use(
+  cors({
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+    origin: 'http://localhost:5173',
+  })
+);
+
+// routes
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/jobs', jobRoutes);
+
+// customize error handler
+app.use(errorHandler);
+
+// default error
+app.use((_err: any, req: Request, res: Response, next: () => void) => {
+  if (res.headersSent) {
+    return next();
+  }
+  res.status(500).json({ error: 'There was a server side error!' });
+});
+
+// listening the server
+app.listen(PORT, HOST_NAME, () => {
+  console.log(
+    `Your server is running successfully on http://${HOST_NAME}:${PORT}`
+  );
+});
