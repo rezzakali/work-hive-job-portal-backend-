@@ -33,14 +33,14 @@ app.use(cookieParser());
 const accessOrigin =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:5173'
-    : 'https://job-portal-dashboard.vercel.app';
+    : 'https://job-portal-dashboard.vercel.app/';
 
 // cors-policy
 app.use(
   cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true,
-    origin: accessOrigin,
+    credentials: false,
+    // origin: accessOrigin,
   })
 );
 
