@@ -41,6 +41,8 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
     origin: accessOrigin,
+    allowedHeaders: ['Authorization', 'X-Requested-With', 'Content-Type'],
+    maxAge: 86400, // 1 day
   })
 );
 
