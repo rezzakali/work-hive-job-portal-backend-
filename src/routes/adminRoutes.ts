@@ -22,9 +22,8 @@ import {
 } from '../controllers/superAdminController';
 import checkAuth from '../middleware/checkAuth';
 import validateRoleData from '../validations/user/validateRoleData';
-// checkAuth, isSuperAdmin,
 
-router.get('/users', getAllUsers);
+router.get('/users', checkAuth, isSuperAdmin, getAllUsers);
 router.get('/users/:userId', checkAuth, isSuperAdmin, getUser);
 router.patch(
   '/users/change-role',
