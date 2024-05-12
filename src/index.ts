@@ -35,7 +35,10 @@ app.use(
   cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
-    origin: 'http://localhost:5173',
+    origin: [
+      'https://job-portal-dashboard.vercel.app',
+      'http://localhost:5173',
+    ],
   })
 );
 
