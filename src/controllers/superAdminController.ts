@@ -62,7 +62,7 @@ export const getAllUsers = async (
       const { password, ...usersWithoutPassword } = user;
       return usersWithoutPassword;
     });
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       count: totalUsers,
       hasNext,

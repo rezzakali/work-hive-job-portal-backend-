@@ -16,10 +16,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dbConnection = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const mongoURI = process.env.MONGO_CONNECTION_URI;
-        const mongoURIPro = process.env.MONGO_CONNECTION_URI_PRO;
-        const environment = process.env.NODE_ENV;
         const DB_NAME = process.env.DB_NAME;
-        yield mongoose_1.default.connect(`${environment === 'development' ? mongoURI : mongoURIPro}/${DB_NAME}`);
+        yield mongoose_1.default.connect(`${mongoURI}/${DB_NAME}`);
         console.log('Database connected successfully!');
     }
     catch (error) {

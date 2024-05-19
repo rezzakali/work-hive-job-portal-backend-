@@ -27,11 +27,15 @@ app.use((0, morgan_1.default)('dev'));
 app.use(express_1.default.json({ limit: '50mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
+const accessOrigin = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5173'
+    : 'https://job-portal-dashboard.vercel.app';
 // cors-policy
 app.use((0, cors_1.default)({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
-    origin: 'http://localhost:5173',
+    origin: accessOrigin,
+    // origin: '*',
 }));
 // routes
 app.use('/api/v1/admin', adminRoutes_1.default);

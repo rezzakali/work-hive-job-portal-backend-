@@ -23,7 +23,7 @@ dbConnection();
 const app = express();
 
 // morgan config
-app.use(morgan('tiny'));
+app.use(morgan('dev'));
 
 // body-parser
 app.use(express.json({ limit: '50mb' }));
@@ -34,15 +34,13 @@ const accessOrigin =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:5173'
     : 'https://job-portal-dashboard.vercel.app';
-
 // cors-policy
 app.use(
   cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
     origin: accessOrigin,
-    allowedHeaders: ['Authorization', 'X-Requested-With', 'Content-Type'],
-    maxAge: 86400, // 1 day
+    // origin: '*',
   })
 );
 

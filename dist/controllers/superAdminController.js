@@ -76,7 +76,7 @@ const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             const { password } = user, usersWithoutPassword = __rest(user, ["password"]);
             return usersWithoutPassword;
         });
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             count: totalUsers,
             hasNext,
