@@ -17,13 +17,10 @@ const PORT: number = Number(process.env.PORT) || 5000;
 
 const HOST_NAME: string = process.env.HOST_NAME || 'localhost';
 
-// db config
-dbConnection();
-
 const app = express();
 
 // morgan config
-app.use(morgan('dev'));
+app.use(morgan('tiny'));
 
 // body-parser
 app.use(express.json({ limit: '50mb' }));
@@ -65,4 +62,6 @@ app.listen(PORT, HOST_NAME, () => {
   console.log(
     `Your server is running successfully on http://${HOST_NAME}:${PORT}`
   );
+  // db config
+  dbConnection();
 });

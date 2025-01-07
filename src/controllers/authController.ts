@@ -58,7 +58,6 @@ export const signinController = async (
 
     // check user with the email
     const user = await User.findOne({ email });
-
     // if no user
     if (!user) {
       return next(new ErrorResponse('Invalid credentials!', 404));

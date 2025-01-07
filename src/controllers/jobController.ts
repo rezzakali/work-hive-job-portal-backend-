@@ -25,22 +25,13 @@ export const getJobsController = async (
   try {
     // Extract search query, sort direction, limit, and page number from request query parameters
     const searchQuery = req.query.search as string | undefined;
-    const sortBy = req.query.sortBy as 'asc' | 'desc' | undefined;
+    const sortField = req.query.sortField as string | undefined;
+    const sortValue = req.query.sortValue as '1' | '-1' | undefined;
+    const status = req.query.status as 'open' | 'closed' | undefined;
     const limit = parseInt(req.query.limit as string, 10) || 10;
     const page = parseInt(req.query.page as string, 10) || 1;
 
-    const { salaryRange } = req.query;
-
-    // Initialize salary range variables
-    let minSalary;
-    let maxSalary;
-
-    // Extract and split the salary range
-    if (typeof salaryRange === 'string') {
-      const [min, max] = salaryRange.split('-');
-      minSalary = parseInt(min, 10);
-      maxSalary = parseInt(max, 10);
-    }
+    const salaryRange = req.query.salaryRange as string | undefined;
 
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
@@ -59,24 +50,39 @@ export const getJobsController = async (
               ],
             }
           : {},
-        minSalary && maxSalary
+
+        status
           ? {
-              salary: {
-                $gte: minSalary,
-                $lte: maxSalary,
-              },
+              status: status,
             }
           : {},
       ],
     };
 
+    if (salaryRange && typeof salaryRange === 'string') {
+      const [minSalary, maxSalary] = salaryRange
+        .split('-')
+        .map((value) => parseInt(value.replace('k', '')) * 1000);
+      query.$and.push({ salary: { $gte: minSalary, $lte: maxSalary } });
+    }
+
+    // Clean up the query by removing empty objects
+    const cleanedQuery = query.$and.filter(
+      (condition) => Object.keys(condition).length > 0
+    );
+
+    // If there are no conditions left, set query to an empty object
+    if (cleanedQuery.length === 0) {
+      delete query.$and;
+    } else {
+      query.$and = cleanedQuery;
+    }
+
     // Build sort options based on sortBy query parameter
     let sortOptions: { [key: string]: 1 | -1 } = {};
 
-    if (sortBy === 'asc') {
-      sortOptions = { createdAt: 1 };
-    } else {
-      sortOptions = { createdAt: -1 };
+    if (sortField && (sortValue === '1' || sortValue === '-1')) {
+      sortOptions[sortField] = parseInt(sortValue) as 1 | -1;
     }
 
     // Specify the fields to include in the response
@@ -86,6 +92,13 @@ export const getJobsController = async (
       'location',
       'salary',
       'createdAt',
+      'updatedAt',
+      'description',
+      'skills',
+      'status',
+      'employmentType',
+      'experienceLevel',
+      'createdBy',
     ];
 
     // Fetch jobs from the database with search, sort, limit, and pagination options
@@ -94,8 +107,11 @@ export const getJobsController = async (
       .skip(skip)
       .limit(limit)
       .select(fieldsToInclude)
+      .populate({
+        path: 'createdBy',
+        select: 'email -_id', // Include only 'email' and exclude '_id'
+      })
       .lean();
-
     // Count total number of documents for pagination
     const totalJobs = await Job.countDocuments(query);
 
@@ -104,14 +120,9 @@ export const getJobsController = async (
 
     res.status(200).json({
       success: true,
-      count: jobs.length,
+      count: totalJobs,
       hasNext,
       data: jobs,
-      //   pagination: {
-      //     totalJobs,
-      //     totalPages: Math.ceil(totalJobs / limit),
-      //     currentPage: page,
-      //   },
     });
   } catch (error) {
     return next(new ErrorResponse(error?.message, 500));
@@ -240,32 +251,32 @@ export const applyJobController = async (
     await newApplication.save();
 
     // Send email to the user
-    const mailOptions = {
-      from: process.env.MY_EMAIL, // Your Gmail address
-      to: user.email, // User's email address
-      subject: 'Application Confirmation',
-      html: `
-        <p>Dear Applicant,</p>
-        <p>We are pleased to inform you that your application for the position of ${job.title} at ${job.company} has been successfully received and is currently under review.</p>
-        <p><strong>Application Details:</strong></p>
-        <ul>
-          <li><strong>Job Title:</strong> ${job.title}</li>
-          <li><strong>Company:</strong> ${job.company}</li>
-          <li><strong>Location:</strong> ${job.location}</li>
-          <li><strong>Salary:</strong> ${job.salary}/month</li>
-          <li><strong>Employment Type:</strong> ${job.employmentType}</li>
-          <li><strong>Experience Level:</strong> ${job.experienceLevel}</li>
-        </ul>
-        <p><strong>Next Steps:</strong></p>
-        <p>Our recruitment team is currently reviewing applications, and we will contact you directly if your qualifications match our requirements and you are selected for an interview.</p>
-        <p>We appreciate your interest in joining our team at <strong>${job.company}</strong>.
-        <p>Thank you once again for applying with us. We wish you the best of luck in your job search!</p>
-        <p>Warm regards,</p>
-        <p>${job.company}<br>${job.location}
-      `,
-    };
+    // const mailOptions = {
+    //   from: process.env.MY_EMAIL, // Your Gmail address
+    //   to: user.email, // User's email address
+    //   subject: 'Application Confirmation',
+    //   html: `
+    //     <p>Dear Applicant,</p>
+    //     <p>We are pleased to inform you that your application for the position of ${job.title} at ${job.company} has been successfully received and is currently under review.</p>
+    //     <p><strong>Application Details:</strong></p>
+    //     <ul>
+    //       <li><strong>Job Title:</strong> ${job.title}</li>
+    //       <li><strong>Company:</strong> ${job.company}</li>
+    //       <li><strong>Location:</strong> ${job.location}</li>
+    //       <li><strong>Salary:</strong> ${job.salary}/month</li>
+    //       <li><strong>Employment Type:</strong> ${job.employmentType}</li>
+    //       <li><strong>Experience Level:</strong> ${job.experienceLevel}</li>
+    //     </ul>
+    //     <p><strong>Next Steps:</strong></p>
+    //     <p>Our recruitment team is currently reviewing applications, and we will contact you directly if your qualifications match our requirements and you are selected for an interview.</p>
+    //     <p>We appreciate your interest in joining our team at <strong>${job.company}</strong>.
+    //     <p>Thank you once again for applying with us. We wish you the best of luck in your job search!</p>
+    //     <p>Warm regards,</p>
+    //     <p>${job.company}<br>${job.location}
+    //   `,
+    // };
 
-    await transporter.sendMail(mailOptions);
+    // await transporter.sendMail(mailOptions);
 
     res.status(201).json({ success: true, message: 'Successfully applied!' });
   } catch (error) {
