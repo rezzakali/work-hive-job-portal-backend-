@@ -1,9 +1,10 @@
 import { CorsOptions } from '../@types';
+import config from './app.config';
 
 const allowedOrigins =
-  process.env.NODE_ENV === 'development'
-    ? ['http://localhost:5173', 'http://localhost:3000'] // Development front-end origin and dashboard
-    : ['https://job-portal-dashboard.vercel.app']; // Production front-end origin
+  config.NODE_ENV === 'development'
+    ? 'http://localhost:5173' // Development front-end origin and dashboard
+    : ['https://job-supply.netlify.app']; // Production front-end origin
 
 const corsOptions: CorsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],

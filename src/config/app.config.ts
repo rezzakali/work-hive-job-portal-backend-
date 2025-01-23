@@ -2,7 +2,6 @@ import getEnv from '../utils/get-env';
 
 const appConfig = () => ({
   NODE_ENV: getEnv('NODE_ENV', 'development'),
-  APP_ORIGIN: getEnv('APP_ORIGIN', 'localhost'),
   PORT: getEnv('PORT', '5000'),
   BASE_PATH: getEnv('BASE_PATH', '/api/v1'),
   MONGO_URI: getEnv('MONGO_URI'),
@@ -11,6 +10,7 @@ const appConfig = () => ({
     SECRET: getEnv('JWT_SECRET'),
     EXPIRES_IN: getEnv('JWT_EXPIRES_IN', '30 days'),
   },
+  COOKIE_EXPIRATION: getEnv('COOKIE_EXPIRATION', '30'),
   SALT_ROUND: getEnv('SALT_ROUND', '10'),
   IMAGEKIT_PUBLIC_KEY: getEnv('IMAGEKIT_PUBLIC_KEY', ''),
   IMAGEKIT_PRIVATE_KEY: getEnv('IMAGEKIT_PRIVATE_KEY', ''),

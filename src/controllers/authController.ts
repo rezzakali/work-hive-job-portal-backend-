@@ -79,10 +79,20 @@ export const signinController = async (
         new ErrorResponse('Invalid credentials!', HTTPSTATUS.BAD_REQUEST)
       );
     }
-
     // generate a jwt token
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRE_IN, // 30 days
+    const token = jwt.sign({ _id: user._id }, config.JWT.SECRET, {
+      expiresIn: config.JWT.EXPIRES_IN, // 30 days
+    });
+
+    const COOKIE_EXPIRATION =
+      parseInt(config.COOKIE_EXPIRATION || '30', 10) * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+
+    // Set the token as a cookie
+    res.cookie('jwt', token, {
+      httpOnly: config.NODE_ENV === 'production' ? true : false, // Makes the cookie inaccessible to JavaScript on the client side
+      secure: config.NODE_ENV === 'production', // Use secure cookies in production
+      sameSite: config.NODE_ENV === 'production' ? 'strict' : 'none', // Prevents cross-site request forgery (CSRF)
+      maxAge: COOKIE_EXPIRATION, // Cookie expiry in milliseconds (30d)
     });
 
     res.status(HTTPSTATUS.OK).json({
