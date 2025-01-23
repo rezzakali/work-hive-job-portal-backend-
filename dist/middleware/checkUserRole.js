@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const http_config_1 = require("../config/http.config");
 const userModel_1 = __importDefault(require("../models/userModel"));
 /**
  * Middleware to check if the user's role is "employer".
@@ -27,11 +28,10 @@ const checkUserRole = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
     else {
         // User is not an employer, return a 403 Forbidden error
-        return res.status(403).json({
+        return res.status(http_config_1.HTTPSTATUS.FORBIDDEN).json({
             success: false,
             message: 'Access forbidden. Only employers can perform operation on jobs.',
         });
     }
 });
 exports.default = checkUserRole;
-//# sourceMappingURL=checkUserRole.js.map

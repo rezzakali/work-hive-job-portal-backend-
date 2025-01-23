@@ -7,4 +7,3 @@ class ErrorResponse extends Error {
     }
 }
 exports.default = ErrorResponse;
-//# sourceMappingURL=error.js.map

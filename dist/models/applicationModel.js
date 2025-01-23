@@ -31,4 +31,3 @@ const applicationSchema = new mongoose_1.default.Schema({
 });
 const Application = mongoose_1.default.model('Application', applicationSchema);
 exports.default = Application;
-//# sourceMappingURL=applicationModel.js.map

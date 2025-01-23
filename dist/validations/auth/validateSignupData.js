@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_validator_1 = require("express-validator");
+const http_config_1 = require("../../config/http.config");
 // Validation checks using express-validator after multer
 const validateSignupData = [
     (0, express_validator_1.body)('email')
@@ -24,10 +25,11 @@ const validateSignupData = [
         if (!errors.isEmpty()) {
             // Return only the message of the first error
             const errorMessage = errors.array()[0].msg;
-            return res.status(400).json({ success: false, message: errorMessage });
+            return res
+                .status(http_config_1.HTTPSTATUS.BAD_REQUEST)
+                .json({ success: false, message: errorMessage });
         }
         next();
     },
 ];
 exports.default = validateSignupData;
-//# sourceMappingURL=validateSignupData.js.map

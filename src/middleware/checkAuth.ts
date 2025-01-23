@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { HTTPSTATUS } from '../config/http.config';
 import ErrorResponse from '../utils/error';
 
 // Extend Request type definition to include user property
@@ -19,14 +20,19 @@ const checkAuth = (req: Request, res: Response, next: NextFunction) => {
       : req.headers['x-access-token'];
 
     if (!token) {
-      return next(new ErrorResponse('Not Authenticated', 403));
+      return next(new ErrorResponse('Not Authenticated', HTTPSTATUS.FORBIDDEN));
     }
     // Verify token
     const verified = jwt.verify(token, process.env.JWT_SECRET);
     req.user = verified;
     next();
   } catch (error) {
-    return next(new ErrorResponse(error?.message || 'Access Denied!', 500));
+    return next(
+      new ErrorResponse(
+        error?.message || 'Access Denied!',
+        HTTPSTATUS.FORBIDDEN
+      )
+    );
   }
 };
 

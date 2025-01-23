@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { FilterQuery } from 'mongoose';
+import { HTTPSTATUS } from '../config/http.config';
 import Application from '../models/applicationModel';
 import Job from '../models/jobModel';
 import User from '../models/userModel';
@@ -62,14 +63,16 @@ export const getAllUsers = async (
       const { password, ...usersWithoutPassword } = user;
       return usersWithoutPassword;
     });
-    res.status(200).json({
+    res.status(HTTPSTATUS.OK).json({
       success: true,
       count: totalUsers,
       hasNext,
       data: formattedUsers,
     });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -83,12 +86,16 @@ export const getUser = async (
     const { userId } = req.params;
     const user = await User.findOne({ _id: userId });
     if (!user) {
-      return next(new ErrorResponse('User does not exists!', 404));
+      return next(
+        new ErrorResponse('User does not exists!', HTTPSTATUS.NOT_FOUND)
+      );
     }
 
-    return res.status(200).json({ success: true, data: user });
+    return res.status(HTTPSTATUS.OK).json({ success: true, data: user });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -102,17 +109,21 @@ export const changeRole = async (
     const { role, userId } = req.body;
     const user = await User.findOne({ _id: userId });
     if (!user) {
-      return next(new ErrorResponse('User does not exists!', 404));
+      return next(
+        new ErrorResponse('User does not exists!', HTTPSTATUS.NOT_FOUND)
+      );
     }
 
     user.role = role;
     await user.save();
 
     return res
-      .status(200)
+      .status(HTTPSTATUS.OK)
       .json({ success: true, message: `User role updated to ${role}` });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -125,15 +136,19 @@ export const deleteUser = async (
   try {
     const { userId } = req.params;
     if (!userId) {
-      return next(new ErrorResponse('userId is required!', 400));
+      return next(
+        new ErrorResponse('userId is required!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     await User.findByIdAndDelete({ _id: userId });
 
     return res
-      .status(200)
+      .status(HTTPSTATUS.OK)
       .json({ success: true, message: 'User deleted successfullly!' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -146,9 +161,11 @@ export const deleteJobController = async (
   try {
     const { jobId } = req.params;
     await Job.findByIdAndDelete({ _id: jobId });
-    res.status(200).json({ success: true, message: 'Job deleted!' });
+    res.status(HTTPSTATUS.OK).json({ success: true, message: 'Job deleted!' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -247,11 +264,11 @@ export const getAllApplications = async (
   //   ]);
 
   //   res
-  //     .status(200)
+  //     .status(HTTPSTATUS.OK)
   //     .json({ success: true, hasNext, count: totalApplications, applications });
   // } catch (error) {
   //   console.error('Error fetching applications:', error);
-  //   return next(new ErrorResponse(error?.message, 500));
+  //   return next(new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR));
   // }
   try {
     const limit = parseInt(req.query.limit as string, 10) || 10;
@@ -341,7 +358,7 @@ export const getAllApplications = async (
       },
     ]);
 
-    res.status(200).json({
+    res.status(HTTPSTATUS.OK).json({
       success: true,
       applications,
       totalApplications,
@@ -351,7 +368,9 @@ export const getAllApplications = async (
     });
   } catch (error) {
     console.error('Error fetching applications:', error);
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -365,22 +384,28 @@ export const updateApplicationStatus = async (
     const { status, applicationId } = req.body;
 
     if (!applicationId) {
-      return next(new ErrorResponse('Application id is required!', 400));
+      return next(
+        new ErrorResponse('Application id is required!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     const application = await Application.findOne({ _id: applicationId });
     if (!application) {
-      return next(new ErrorResponse('Application does not exists!', 404));
+      return next(
+        new ErrorResponse('Application does not exists!', HTTPSTATUS.NOT_FOUND)
+      );
     }
 
     application.status = status;
     await application.save();
 
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       success: true,
       message: `Applications status updated to ${status}`,
     });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -393,12 +418,18 @@ export const deleteApplication = async (
   try {
     const { applicationId } = req.params;
     if (!applicationId) {
-      return next(new ErrorResponse('Applicaton id is required!', 400));
+      return next(
+        new ErrorResponse('Applicaton id is required!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     await Application.findByIdAndDelete({ _id: applicationId });
-    res.status(200).json({ success: true, message: 'Application deleted!' });
+    res
+      .status(HTTPSTATUS.OK)
+      .json({ success: true, message: 'Application deleted!' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -412,12 +443,16 @@ export const ChangeJobStatusController = async (
     const { jobId, status } = req.body;
 
     if (!jobId) {
-      return next(new ErrorResponse('jobId is required!', 400));
+      return next(
+        new ErrorResponse('jobId is required!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     // Find the job by ID
     const job = await Job.findOne({ _id: jobId });
     if (!job) {
-      return res.status(404).json({ success: false, message: 'Job not found' });
+      return res
+        .status(HTTPSTATUS.NOT_FOUND)
+        .json({ success: false, message: 'Job not found' });
     }
 
     // Update the job status
@@ -425,10 +460,12 @@ export const ChangeJobStatusController = async (
     await job.save();
 
     res
-      .status(200)
+      .status(HTTPSTATUS.OK)
       .json({ success: true, message: 'Job status changed successfully' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -509,13 +546,18 @@ export const getDashboardSummaryController = async (
     ];
 
     // Send the formatted data in the response
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       success: true,
       data: formattedData,
     });
   } catch (error) {
     console.error('Error fetching dashboard summary:', error);
-    return next(new ErrorResponse('Failed to fetch dashboard summary', 500));
+    return next(
+      new ErrorResponse(
+        'Failed to fetch dashboard summary',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
+    );
   }
 };
 
@@ -531,13 +573,16 @@ export const getDashboardRecentJobsController = async (
       .select('title company createdAt status')
       .lean();
 
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       status: true,
       data: jobs,
     });
   } catch (error) {
     return next(
-      new ErrorResponse('Failed to fetch dashboard recent jobs', 500)
+      new ErrorResponse(
+        'Failed to fetch dashboard recent jobs',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
     );
   }
 };
@@ -562,13 +607,16 @@ export const getDashboardRecentApplicationsController = async (
       .select('-resume')
       .lean();
 
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       status: true,
       data: applications,
     });
   } catch (error) {
     return next(
-      new ErrorResponse('Failed to fetch dashboard recent applications', 500)
+      new ErrorResponse(
+        'Failed to fetch dashboard recent applications',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
     );
   }
 };
@@ -599,13 +647,18 @@ export const getTopCompaniesController = async (
     ]);
 
     // Return the top companies
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       success: true,
       data: topCompanies,
     });
   } catch (error) {
     console.error('Error fetching top companies:', error);
-    return next(new ErrorResponse('Failed to fetch top companies', 500));
+    return next(
+      new ErrorResponse(
+        'Failed to fetch top companies',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
+    );
   }
 };
 
@@ -626,13 +679,18 @@ export const getTasksNotificationsController = async (
     // };
 
     // Return the tasks/notifications
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       success: true,
       data: pendingApplications,
     });
   } catch (error) {
     console.error('Error fetching tasks/notifications:', error);
-    return next(new ErrorResponse('Failed to fetch tasks/notifications', 500));
+    return next(
+      new ErrorResponse(
+        'Failed to fetch tasks/notifications',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
+    );
   }
 };
 
@@ -661,14 +719,17 @@ export const getApplicationsByStatusController = async (
       },
     ]);
 
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       success: true,
       data: applicationsByStatus,
     });
   } catch (error) {
     console.error('Error fetching applications by status:', error);
     return next(
-      new ErrorResponse('Failed to fetch applications by status', 500)
+      new ErrorResponse(
+        'Failed to fetch applications by status',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
     );
   }
 };

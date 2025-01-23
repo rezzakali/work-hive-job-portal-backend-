@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
+import { HTTPSTATUS } from '../../config/http.config';
 
 const validateApplicantStatusData = [
   body('userId')
@@ -24,7 +25,9 @@ const validateApplicantStatusData = [
     if (!errors.isEmpty()) {
       // Return only the message of the first error
       const errorMessage = errors.array()[0].msg;
-      return res.status(400).json({ success: false, message: errorMessage });
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ success: false, message: errorMessage });
     }
     next();
   },

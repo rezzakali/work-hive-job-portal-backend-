@@ -13,7 +13,11 @@
 		"build",
 		"add-build"
 	],
-	"keywords": [],
+	"keywords": [
+		"Node.js",
+		"Express.js",
+		"Bcrypt.js"
+	],
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {

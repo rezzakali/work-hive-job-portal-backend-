@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const http_config_1 = require("../config/http.config");
 const userModel_1 = __importDefault(require("../models/userModel"));
 const isSuperAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user._id;
@@ -20,11 +21,10 @@ const isSuperAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         next();
     }
     else {
-        return res.status(403).json({
+        return res.status(http_config_1.HTTPSTATUS.FORBIDDEN).json({
             success: false,
             message: 'Access forbidden. Only Admin can access',
         });
     }
 });
 exports.default = isSuperAdmin;
-//# sourceMappingURL=isSuperAdmin.js.map

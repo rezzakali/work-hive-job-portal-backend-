@@ -23,4 +23,3 @@ const limits = {
 };
 const upload = (0, multer_1.default)({ storage, limits, fileFilter });
 exports.default = upload;
-//# sourceMappingURL=imageUploader.js.map

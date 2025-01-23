@@ -28,4 +28,3 @@ const uploadToImageKit = (file, folderPath) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.default = uploadToImageKit;
-//# sourceMappingURL=imageUploadToImageKit.js.map

@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import config from '../config/app.config';
+import { HTTPSTATUS } from '../config/http.config';
 import User from '../models/userModel';
 import ErrorResponse from '../utils/error';
 import uploadToImageKit from '../utils/imageUploadToImageKit';
@@ -21,7 +23,7 @@ export const signupController = async (
     }
 
     //   hashed password
-    const hashedPassword = bcrypt.hashSync(password, 10);
+    const hashedPassword = bcrypt.hashSync(password, config.SALT_ROUND);
 
     const newUser = new User({
       ...req.body,
@@ -32,7 +34,7 @@ export const signupController = async (
     await newUser.save();
 
     // send response
-    res.status(201).json({
+    res.status(HTTPSTATUS.CREATED).json({
       success: true,
       message:
         'Thank you for registering! Your account has been successfully created.',
@@ -41,7 +43,10 @@ export const signupController = async (
     next();
   } catch (error) {
     return next(
-      new ErrorResponse(error?.message || 'Internal Server Error', 500)
+      new ErrorResponse(
+        error?.message || 'Internal Server Error',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
     );
   }
 };
@@ -60,7 +65,9 @@ export const signinController = async (
     const user = await User.findOne({ email });
     // if no user
     if (!user) {
-      return next(new ErrorResponse('Invalid credentials!', 404));
+      return next(
+        new ErrorResponse('Invalid credentials!', HTTPSTATUS.NOT_FOUND)
+      );
     }
 
     // compare the password
@@ -68,7 +75,9 @@ export const signinController = async (
 
     // if the password is invalid
     if (!isValidPassword) {
-      return next(new ErrorResponse('Invalid credentials!', 400));
+      return next(
+        new ErrorResponse('Invalid credentials!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
 
     // generate a jwt token
@@ -76,14 +85,16 @@ export const signinController = async (
       expiresIn: process.env.JWT_EXPIRE_IN, // 30 days
     });
 
-    res.status(200).json({
+    res.status(HTTPSTATUS.OK).json({
       success: true,
       message: 'Login Successful: Welcome back to your account.',
       data: token,
     });
     next();
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -100,28 +111,34 @@ export const passwordChange = async (
 
     // if no user
     if (!user) {
-      return next(new ErrorResponse('Invalid credentials', 404));
+      return next(
+        new ErrorResponse('Invalid credentials', HTTPSTATUS.NOT_FOUND)
+      );
     }
     // Check if the current password is correct
     const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
 
     if (!isPasswordValid) {
-      return next(new ErrorResponse('Incorrect old password', 401));
+      return next(
+        new ErrorResponse('Incorrect old password', HTTPSTATUS.UNAUTHORIZED)
+      );
     }
 
     // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, config.SALT_ROUND);
 
     // udpate the password
     user.password = hashedPassword;
     await user.save();
 
-    return res.status(200).json({
+    return res.status(HTTPSTATUS.OK).json({
       success: true,
       message: 'Password changed successfully!',
     });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -136,18 +153,22 @@ export const addAddressController = async (
     const user = await User.findOne({ email });
     // if no user
     if (!user) {
-      return next(new ErrorResponse('Invalid credentials!', 404));
+      return next(
+        new ErrorResponse('Invalid credentials!', HTTPSTATUS.NOT_FOUND)
+      );
     }
     user.address = address;
     await user.save();
 
-    res.status(200).json({
+    res.status(HTTPSTATUS.OK).json({
       success: true,
       message: 'Address updated',
     });
     next();
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -160,12 +181,16 @@ export const addResumeController = async (
   try {
     const { email } = req.body;
     if (!email) {
-      return next(new ErrorResponse('Email is required', 400));
+      return next(
+        new ErrorResponse('Email is required', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     const user = await User.findOne({ email });
 
     if (!user) {
-      return next(new ErrorResponse('Invalid credentials', 400));
+      return next(
+        new ErrorResponse('Invalid credentials', HTTPSTATUS.NOT_FOUND)
+      );
     }
     // upload image to imageKit platform
     const folderPath = 'users-resume';
@@ -176,6 +201,8 @@ export const addResumeController = async (
     await user.save();
     res.status(200).json({ success: true, message: 'Resume added' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };

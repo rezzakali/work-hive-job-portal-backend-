@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { HTTPSTATUS } from '../config/http.config';
 import User from '../models/userModel';
 
 /**
@@ -19,7 +20,7 @@ const checkUserRole = async (
     next();
   } else {
     // User is not an employer, return a 403 Forbidden error
-    return res.status(403).json({
+    return res.status(HTTPSTATUS.FORBIDDEN).json({
       success: false,
       message:
         'Access forbidden. Only employers can perform operation on jobs.',

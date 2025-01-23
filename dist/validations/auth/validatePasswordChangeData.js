@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_validator_1 = require("express-validator");
+const http_config_1 = require("../../config/http.config");
 const validatePasswordChangeData = [
     (0, express_validator_1.body)('email')
         .notEmpty()
@@ -23,10 +24,11 @@ const validatePasswordChangeData = [
         if (!errors.isEmpty()) {
             // Return only the message of the first error
             const errorMessage = errors.array()[0].msg;
-            return res.status(400).json({ success: false, message: errorMessage });
+            return res
+                .status(http_config_1.HTTPSTATUS.BAD_REQUEST)
+                .json({ success: false, message: errorMessage });
         }
         next();
     },
 ];
 exports.default = validatePasswordChangeData;
-//# sourceMappingURL=validatePasswordChangeData.js.map

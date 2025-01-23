@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const http_config_1 = require("../config/http.config");
 const error_1 = __importDefault(require("../utils/error"));
 const checkAuth = (req, res, next) => {
     try {
@@ -12,7 +13,7 @@ const checkAuth = (req, res, next) => {
             ? req.headers['x-access-token'][0]
             : req.headers['x-access-token'];
         if (!token) {
-            return next(new error_1.default('Not Authenticated', 403));
+            return next(new error_1.default('Not Authenticated', http_config_1.HTTPSTATUS.FORBIDDEN));
         }
         // Verify token
         const verified = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
@@ -20,8 +21,7 @@ const checkAuth = (req, res, next) => {
         next();
     }
     catch (error) {
-        return next(new error_1.default((error === null || error === void 0 ? void 0 : error.message) || 'Access Denied!', 500));
+        return next(new error_1.default((error === null || error === void 0 ? void 0 : error.message) || 'Access Denied!', http_config_1.HTTPSTATUS.FORBIDDEN));
     }
 };
 exports.default = checkAuth;
-//# sourceMappingURL=checkAuth.js.map

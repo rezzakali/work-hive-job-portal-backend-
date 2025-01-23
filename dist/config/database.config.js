@@ -13,16 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const dbConnection = () => __awaiter(void 0, void 0, void 0, function* () {
+const app_config_1 = __importDefault(require("./app.config"));
+const connectDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const mongoURI = process.env.MONGO_CONNECTION_URI;
-        const DB_NAME = process.env.DB_NAME;
-        yield mongoose_1.default.connect(`${mongoURI}/${DB_NAME}`);
-        console.log('Database connected successfully!');
+        const connectionString = app_config_1.default.NODE_ENV === 'production'
+            ? app_config_1.default.MONGO_URI_ATLAS
+            : app_config_1.default.MONGO_URI;
+        yield mongoose_1.default.connect(connectionString);
+        console.log('Database connectied successfully!');
     }
     catch (error) {
-        console.error('Database connection failed!', error);
+        console.log('Database connection failed!');
+        process.exit(1);
     }
 });
-exports.default = dbConnection;
-//# sourceMappingURL=dbConnection.js.map
+exports.default = connectDatabase;

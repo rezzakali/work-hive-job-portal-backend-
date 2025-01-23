@@ -40,4 +40,3 @@ router.get('/:jobId/applicants', checkAuth_1.default, checkUserRole_1.default, j
 // Only employer can access
 router.patch('/applicant-status', checkAuth_1.default, checkUserRole_1.default, validateApplicantStatusData_1.default, jobController_1.updateApplicantStatusController);
 exports.default = router;
-//# sourceMappingURL=jobRoutes.js.map

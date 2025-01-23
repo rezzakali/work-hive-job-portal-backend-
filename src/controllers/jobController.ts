@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { FilterQuery } from 'mongoose';
 import nodemailer from 'nodemailer';
+import { HTTPSTATUS } from '../config/http.config';
 import Application from '../models/applicationModel';
 import Job from '../models/jobModel';
 import User from '../models/userModel';
@@ -118,14 +119,16 @@ export const getJobsController = async (
     // Calculate hasNext boolean for pagination
     const hasNext = totalJobs > skip + limit;
 
-    res.status(200).json({
+    res.status(HTTPSTATUS.OK).json({
       success: true,
       count: totalJobs,
       hasNext,
       data: jobs,
     });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -138,16 +141,25 @@ export const getJobsDetailsController = async (
   try {
     const { id } = req.params;
     if (!id) {
-      return next(new ErrorResponse('Id is required to see job details', 400));
+      return next(
+        new ErrorResponse(
+          'Id is required to see job details',
+          HTTPSTATUS.BAD_REQUEST
+        )
+      );
     }
     const job = await Job.findById(id);
     if (!job) {
-      return next(new ErrorResponse('Job does not exists', 404));
+      return next(
+        new ErrorResponse('Job does not exists', HTTPSTATUS.NOT_FOUND)
+      );
     }
-    res.status(200).json({ success: true, data: job });
+    res.status(HTTPSTATUS.OK).json({ success: true, data: job });
     next();
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -167,9 +179,11 @@ export const postAJobController = async (
     // Save the job document
     await job.save();
 
-    res.status(201).json({ success: true, data: job });
+    res.status(HTTPSTATUS.CREATED).json({ success: true, data: job });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -184,10 +198,12 @@ export const updateJobController = async (
     const updatedJob = await Job.findByIdAndUpdate({ _id: jobId }, data, {
       new: true,
     });
-    res.status(200).json({ success: true, data: updatedJob });
+    res.status(HTTPSTATUS.OK).json({ success: true, data: updatedJob });
     next();
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -205,7 +221,7 @@ export const applyJobController = async (
     const existingApplication = await Application.findOne({ userId, jobId });
 
     if (existingApplication) {
-      return res.status(400).json({
+      return res.status(HTTPSTATUS.BAD_REQUEST).json({
         success: false,
         message: 'You have already applied to this job',
       });
@@ -216,7 +232,7 @@ export const applyJobController = async (
 
     if (!user) {
       return res
-        .status(404)
+        .status(HTTPSTATUS.NOT_FOUND)
         .json({ success: false, message: 'User not found' });
     }
 
@@ -230,7 +246,7 @@ export const applyJobController = async (
 
       if (!imageUploadResponse?.url || !imageUploadResponse?.fileId) {
         return res
-          .status(500)
+          .status(HTTPSTATUS.INTERNAL_SERVER_ERROR)
           .json({ success: false, message: 'Failed to apply on this job' });
       }
 
@@ -278,9 +294,13 @@ export const applyJobController = async (
 
     // await transporter.sendMail(mailOptions);
 
-    res.status(201).json({ success: true, message: 'Successfully applied!' });
+    res
+      .status(HTTPSTATUS.CREATED)
+      .json({ success: true, message: 'Successfully applied!' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -295,22 +315,30 @@ export const closeJobController = async (
     const userId = req.user._id;
 
     if (!jobId) {
-      return next(new ErrorResponse('jobId is required!', 400));
+      return next(
+        new ErrorResponse('jobId is required!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     // Find the job by ID and check if the authenticated user is the creator
     const job = await Job.findOne({ _id: jobId, createdBy: userId });
 
     if (!job) {
-      return res.status(404).json({ success: false, message: 'Job not found' });
+      return res
+        .status(HTTPSTATUS.NOT_FOUND)
+        .json({ success: false, message: 'Job not found' });
     }
 
     // Update the job status to 'closed'
     job.status = 'closed';
     await job.save();
 
-    res.status(200).json({ success: true, message: 'Job closed successfully' });
+    res
+      .status(HTTPSTATUS.OK)
+      .json({ success: true, message: 'Job closed successfully' });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -323,19 +351,23 @@ export const getEmployerJobsController = async (
   try {
     const { userId } = req.params;
     if (!userId) {
-      return next(new ErrorResponse('userId is required!', 400));
+      return next(
+        new ErrorResponse('userId is required!', HTTPSTATUS.BAD_REQUEST)
+      );
     }
     // Fetch all job listings created by the specific employer
     const jobs = await Job.find({ createdBy: userId });
     if (!jobs || jobs.length === 0) {
       return res
-        .status(404)
+        .status(HTTPSTATUS.NOT_FOUND)
         .json({ success: false, message: 'No jobs found for this employer!' });
     }
 
-    res.status(200).json({ success: true, data: jobs });
+    res.status(HTTPSTATUS.OK).json({ success: true, data: jobs });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -353,7 +385,7 @@ export const getApplicantsController = async (
 
     if (applications.length === 0) {
       return res
-        .status(404)
+        .status(HTTPSTATUS.NOT_FOUND)
         .json({ success: false, message: 'No applicants found for this job' });
     }
 
@@ -369,9 +401,11 @@ export const getApplicantsController = async (
       }
     }
 
-    res.status(200).json({ success: true, data: applicants });
+    res.status(HTTPSTATUS.OK).json({ success: true, data: applicants });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };
 
@@ -400,7 +434,7 @@ export const updateApplicantStatusController = async (
 
     if (!application) {
       return res
-        .status(404)
+        .status(HTTPSTATUS.NOT_FOUND)
         .json({ success: false, message: 'Application not found' });
     }
 
@@ -423,11 +457,13 @@ export const updateApplicantStatusController = async (
 
     // await transporter.sendMail(mailOptions);
 
-    res.status(200).json({
+    res.status(HTTPSTATUS.OK).json({
       success: true,
       message: 'Applicant status updated successfully',
     });
   } catch (error) {
-    return next(new ErrorResponse(error?.message, 500));
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
   }
 };

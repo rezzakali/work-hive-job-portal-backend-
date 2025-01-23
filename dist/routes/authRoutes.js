@@ -23,4 +23,3 @@ router.patch('/change-address', checkAuth_1.default, validateAddAddressData_1.de
 // add resume
 router.patch('/add-resume', checkAuth_1.default, imageUploader_1.default.single('file'), authController_1.addResumeController);
 exports.default = router;
-//# sourceMappingURL=authRoutes.js.map

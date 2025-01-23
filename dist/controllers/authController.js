@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addResumeController = exports.addAddressController = exports.passwordChange = exports.signinController = exports.signupController = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const app_config_1 = __importDefault(require("../config/app.config"));
+const http_config_1 = require("../config/http.config");
 const userModel_1 = __importDefault(require("../models/userModel"));
 const error_1 = __importDefault(require("../utils/error"));
 const imageUploadToImageKit_1 = __importDefault(require("../utils/imageUploadToImageKit"));
@@ -28,19 +30,19 @@ const signupController = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             return next(new error_1.default('User already exists!', 403));
         }
         //   hashed password
-        const hashedPassword = bcryptjs_1.default.hashSync(password, 10);
+        const hashedPassword = bcryptjs_1.default.hashSync(password, app_config_1.default.SALT_ROUND);
         const newUser = new userModel_1.default(Object.assign(Object.assign({}, req.body), { password: hashedPassword }));
         // finally save to database
         yield newUser.save();
         // send response
-        res.status(201).json({
+        res.status(http_config_1.HTTPSTATUS.CREATED).json({
             success: true,
             message: 'Thank you for registering! Your account has been successfully created.',
         });
         next();
     }
     catch (error) {
-        return next(new error_1.default((error === null || error === void 0 ? void 0 : error.message) || 'Internal Server Error', 500));
+        return next(new error_1.default((error === null || error === void 0 ? void 0 : error.message) || 'Internal Server Error', http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
     }
 });
 exports.signupController = signupController;
@@ -53,19 +55,19 @@ const signinController = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const user = yield userModel_1.default.findOne({ email });
         // if no user
         if (!user) {
-            return next(new error_1.default('Invalid credentials!', 404));
+            return next(new error_1.default('Invalid credentials!', http_config_1.HTTPSTATUS.NOT_FOUND));
         }
         // compare the password
         const isValidPassword = yield bcryptjs_1.default.compare(password, user.password);
         // if the password is invalid
         if (!isValidPassword) {
-            return next(new error_1.default('Invalid credentials!', 400));
+            return next(new error_1.default('Invalid credentials!', http_config_1.HTTPSTATUS.BAD_REQUEST));
         }
         // generate a jwt token
         const token = jsonwebtoken_1.default.sign({ _id: user._id }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE_IN, // 30 days
         });
-        res.status(200).json({
+        res.status(http_config_1.HTTPSTATUS.OK).json({
             success: true,
             message: 'Login Successful: Welcome back to your account.',
             data: token,
@@ -73,7 +75,7 @@ const signinController = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         next();
     }
     catch (error) {
-        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, 500));
+        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
     }
 });
 exports.signinController = signinController;
@@ -85,25 +87,25 @@ const passwordChange = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         const user = yield userModel_1.default.findOne({ email });
         // if no user
         if (!user) {
-            return next(new error_1.default('Invalid credentials', 404));
+            return next(new error_1.default('Invalid credentials', http_config_1.HTTPSTATUS.NOT_FOUND));
         }
         // Check if the current password is correct
         const isPasswordValid = yield bcryptjs_1.default.compare(oldPassword, user.password);
         if (!isPasswordValid) {
-            return next(new error_1.default('Incorrect old password', 401));
+            return next(new error_1.default('Incorrect old password', http_config_1.HTTPSTATUS.UNAUTHORIZED));
         }
         // Hash the new password
-        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);
+        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, app_config_1.default.SALT_ROUND);
         // udpate the password
         user.password = hashedPassword;
         yield user.save();
-        return res.status(200).json({
+        return res.status(http_config_1.HTTPSTATUS.OK).json({
             success: true,
             message: 'Password changed successfully!',
         });
     }
     catch (error) {
-        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, 500));
+        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
     }
 });
 exports.passwordChange = passwordChange;
@@ -114,18 +116,18 @@ const addAddressController = (req, res, next) => __awaiter(void 0, void 0, void 
         const user = yield userModel_1.default.findOne({ email });
         // if no user
         if (!user) {
-            return next(new error_1.default('Invalid credentials!', 404));
+            return next(new error_1.default('Invalid credentials!', http_config_1.HTTPSTATUS.NOT_FOUND));
         }
         user.address = address;
         yield user.save();
-        res.status(200).json({
+        res.status(http_config_1.HTTPSTATUS.OK).json({
             success: true,
             message: 'Address updated',
         });
         next();
     }
     catch (error) {
-        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, 500));
+        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
     }
 });
 exports.addAddressController = addAddressController;
@@ -134,11 +136,11 @@ const addResumeController = (req, res, next) => __awaiter(void 0, void 0, void 0
     try {
         const { email } = req.body;
         if (!email) {
-            return next(new error_1.default('Email is required', 400));
+            return next(new error_1.default('Email is required', http_config_1.HTTPSTATUS.BAD_REQUEST));
         }
         const user = yield userModel_1.default.findOne({ email });
         if (!user) {
-            return next(new error_1.default('Invalid credentials', 400));
+            return next(new error_1.default('Invalid credentials', http_config_1.HTTPSTATUS.NOT_FOUND));
         }
         // upload image to imageKit platform
         const folderPath = 'users-resume';
@@ -149,8 +151,7 @@ const addResumeController = (req, res, next) => __awaiter(void 0, void 0, void 0
         res.status(200).json({ success: true, message: 'Resume added' });
     }
     catch (error) {
-        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, 500));
+        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
     }
 });
 exports.addResumeController = addResumeController;
-//# sourceMappingURL=authController.js.map

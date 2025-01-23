@@ -62,4 +62,3 @@ const jobSchema = new mongoose_1.default.Schema({
 });
 const Job = mongoose_1.default.model('Job', jobSchema);
 exports.default = Job;
-//# sourceMappingURL=jobModel.js.map
