@@ -23,7 +23,7 @@ export const signupController = async (
     }
 
     //   hashed password
-    const hashedPassword = bcrypt.hashSync(password, config.SALT_ROUND);
+    const hashedPassword = bcrypt.hashSync(password, Number(config.SALT_ROUND));
 
     const newUser = new User({
       ...req.body,

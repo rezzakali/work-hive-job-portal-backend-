@@ -4,7 +4,7 @@ import config from './app.config';
 const allowedOrigins =
   config.NODE_ENV === 'development'
     ? 'http://localhost:5173' // Development front-end origin and dashboard
-    : ['https://job-supply.netlify.app']; // Production front-end origin
+    : ['https://job-portal-dashboard.vercel.app']; // Production front-end origin dashboard
 
 const corsOptions: CorsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
