@@ -59,7 +59,7 @@ This README file provides detailed documentation for the Job Portal API. This AP
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/rezzakali/job-portal-api.git
+   git clone https://github.com/rezzakali/job-portal-backend.git
    ```
 
 2. Navigate to the project directory:
@@ -167,7 +167,7 @@ Feel free to contribute to this project by submitting pull requests or reporting
 
 ## Contact
 
-For any questions, concerns, or suggestions, please contact [your-email@example.com](mailto:your-email@example.com).
+For any questions, concerns, or suggestions, please contact [rezzak.dev@gmail.com](mailto:rezzak.dev@gmail.com).
 
 ---
 
