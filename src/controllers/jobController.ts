@@ -357,11 +357,12 @@ export const getEmployerJobsController = async (
     }
     // Fetch all job listings created by the specific employer
     const jobs = await Job.find({ createdBy: userId });
-
     if (!jobs || jobs.length === 0) {
-      return res
-        .status(HTTPSTATUS.NOT_FOUND)
-        .json({ success: false, message: 'No jobs found for this employer!' });
+      return res.status(HTTPSTATUS.NOT_FOUND).json({
+        success: false,
+        message: 'No jobs found for this employer!',
+        data: jobs,
+      });
     }
 
     res.status(HTTPSTATUS.OK).json({ success: true, data: jobs });
