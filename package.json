@@ -1,7 +1,7 @@
 {
 	"name": "job_portal_api",
 	"version": "1.0.0",
-	"description": "",
+	"description": "A backend API for a job portal application",
 	"main": "index.js",
 	"scripts": {
 		"start": "node dist/index.js",

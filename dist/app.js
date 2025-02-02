@@ -14,6 +14,7 @@ const http_config_1 = require("./config/http.config");
 const errorHandler_1 = __importDefault(require("./helpers/errorHandler"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
+const generalRoutes_1 = __importDefault(require("./routes/generalRoutes"));
 const jobRoutes_1 = __importDefault(require("./routes/jobRoutes"));
 // base path
 const BASE_PATH = app_config_1.default.BASE_PATH;
@@ -30,6 +31,7 @@ app.use((0, cors_1.default)(cors_config_1.default));
 app.use(`${BASE_PATH}/admin`, adminRoutes_1.default);
 app.use(`${BASE_PATH}/auth`, authRoutes_1.default);
 app.use(`${BASE_PATH}/jobs`, jobRoutes_1.default);
+app.use(`${BASE_PATH}/general`, generalRoutes_1.default);
 // customize error handler
 app.use(errorHandler_1.default);
 // default error

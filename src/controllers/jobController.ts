@@ -357,6 +357,7 @@ export const getEmployerJobsController = async (
     }
     // Fetch all job listings created by the specific employer
     const jobs = await Job.find({ createdBy: userId });
+
     if (!jobs || jobs.length === 0) {
       return res
         .status(HTTPSTATUS.NOT_FOUND)
@@ -460,6 +461,42 @@ export const updateApplicantStatusController = async (
     res.status(HTTPSTATUS.OK).json({
       success: true,
       message: 'Applicant status updated successfully',
+    });
+  } catch (error) {
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
+  }
+};
+
+// ######## FIND OUT APPLICANTS ################
+export const checkApplicationStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user._id; // Get user ID from authentication middleware
+    const { jobId } = req.params;
+    if (!jobId) {
+      return res
+        .status(HTTPSTATUS.BAD_REQUEST)
+        .json({ error: 'Job ID is required' });
+    }
+
+    // Check if the user has already applied to the job
+    const existingApplication = await Application.findOne({ userId, jobId });
+    if (existingApplication) {
+      return res.status(HTTPSTATUS.OK).json({
+        success: true,
+        message: 'You have already applied to this job',
+        data: true,
+      });
+    }
+    return res.status(HTTPSTATUS.OK).json({
+      success: true,
+      message: 'You have not applied to this job',
+      data: false,
     });
   } catch (error) {
     return next(

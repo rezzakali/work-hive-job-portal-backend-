@@ -24,7 +24,7 @@ router.get('/:id', checkAuth_1.default, jobController_1.getJobsDetailsController
 router.post('/apply', checkAuth_1.default, imageUploader_1.default.single('file'), jobController_1.applyJobController);
 // ################ POST A JOB #################
 // Only employer can create a job
-router.post('/', checkAuth_1.default, checkUserRole_1.default, validateJobData_1.default, jobController_1.postAJobController);
+router.post('/create-job', checkAuth_1.default, checkUserRole_1.default, validateJobData_1.default, jobController_1.postAJobController);
 // ############# GET THEIR OWN JOBS #################
 router.get('/employer/:userId', checkAuth_1.default, checkUserRole_1.default, validateUserId_1.default, jobController_1.getEmployerJobsController);
 // ################ UPDATE JOB ########################
@@ -39,4 +39,6 @@ router.get('/:jobId/applicants', checkAuth_1.default, checkUserRole_1.default, j
 // ############### UPDATE APPLICANT STATUS #####################
 // Only employer can access
 router.patch('/applicant-status', checkAuth_1.default, checkUserRole_1.default, validateApplicantStatusData_1.default, jobController_1.updateApplicantStatusController);
+// Check if user has applied for a job
+router.get('/check-application/:jobId', checkAuth_1.default, jobController_1.checkApplicationStatus);
 exports.default = router;

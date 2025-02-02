@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   addAddressController,
   addResumeController,
+  getProfile,
+  logoutController,
   passwordChange,
   signinController,
   signupController,
@@ -28,6 +30,12 @@ router.patch(
   validatePasswordChangeData,
   passwordChange
 );
+
+// logout
+router.post('/logout', checkAuth, logoutController);
+
+// get profile
+router.get('/profile', checkAuth, getProfile);
 
 // add address
 router.patch(

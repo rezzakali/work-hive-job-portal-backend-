@@ -38,7 +38,8 @@ const validateJobData = [
     .withMessage('Invalid experience level'),
 
   body('skills')
-    .optional()
+    .notEmpty()
+    .withMessage('Skills is required!')
     .isArray()
     .withMessage('Skills must be an array')
     .isArray({ min: 1 })
@@ -55,7 +56,6 @@ const validateJobData = [
   (req: Request, res: Response, next: NextFunction) => {
     // Check for validation errors
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
       // Return only the message of the first error
       const errorMessage = errors.array()[0].msg;

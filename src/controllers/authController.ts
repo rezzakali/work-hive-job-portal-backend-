@@ -108,6 +108,36 @@ export const signinController = async (
   }
 };
 
+// logout controller
+// Logout Controller
+export const logoutController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Clear the authentication token or session cookie
+    res.clearCookie('client.sid', {
+      httpOnly: true,
+      secure: config.NODE_ENV === 'production', // Only in HTTPS for production
+      sameSite: 'strict',
+    });
+
+    // Respond with a success message
+    return res
+      .status(HTTPSTATUS.OK)
+      .json({ message: 'Logged out successfully!' });
+  } catch (error) {
+    // Handle any potential errors
+    return next(
+      new ErrorResponse(
+        'Error logging out. Please try again.',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
 // Password-change
 export const passwordChange = async (
   req: Request,
@@ -135,7 +165,10 @@ export const passwordChange = async (
     }
 
     // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, config.SALT_ROUND);
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      Number(config.SALT_ROUND)
+    );
 
     // udpate the password
     user.password = hashedPassword;
@@ -177,7 +210,10 @@ export const addAddressController = async (
     next();
   } catch (error) {
     return next(
-      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+      new ErrorResponse(
+        error?.message || 'Internal server error!',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
     );
   }
 };
@@ -210,6 +246,34 @@ export const addResumeController = async (
     user.resume.fileId = imageUploadResponse?.fileId;
     await user.save();
     res.status(200).json({ success: true, message: 'Resume added' });
+  } catch (error) {
+    return next(
+      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
+    );
+  }
+};
+
+// get profile
+export const getProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { _id } = req.user;
+    if (!_id) {
+      return next(new ErrorResponse('Id is required', HTTPSTATUS.BAD_REQUEST));
+    }
+    const user = await User.findById(_id);
+
+    if (!user) {
+      return next(
+        new ErrorResponse('Invalid credentials', HTTPSTATUS.NOT_FOUND)
+      );
+    }
+
+    const { password, ...rest } = user.toObject();
+    res.status(200).json({ success: true, data: rest });
   } catch (error) {
     return next(
       new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)

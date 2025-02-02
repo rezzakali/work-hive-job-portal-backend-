@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   applyJobController,
+  checkApplicationStatus,
   closeJobController,
   getApplicantsController,
   getEmployerJobsController,
@@ -8,7 +9,7 @@ import {
   getJobsDetailsController,
   postAJobController,
   updateApplicantStatusController,
-  updateJobController,
+  updateJobController
 } from '../controllers/jobController';
 import checkAuth from '../middleware/checkAuth';
 import checkUserRole from '../middleware/checkUserRole';
@@ -34,7 +35,13 @@ router.post('/apply', checkAuth, upload.single('file'), applyJobController);
 
 // ################ POST A JOB #################
 // Only employer can create a job
-router.post('/', checkAuth, checkUserRole, validateJobData, postAJobController);
+router.post(
+  '/create-job',
+  checkAuth,
+  checkUserRole,
+  validateJobData,
+  postAJobController
+);
 
 // ############# GET THEIR OWN JOBS #################
 router.get(
@@ -77,5 +84,8 @@ router.patch(
   validateApplicantStatusData,
   updateApplicantStatusController
 );
+
+// Check if user has applied for a job
+router.get('/check-application/:jobId', checkAuth, checkApplicationStatus);
 
 export default router;

@@ -9,6 +9,7 @@ import { HTTPSTATUS } from './config/http.config';
 import errorHandler from './helpers/errorHandler';
 import adminRoutes from './routes/adminRoutes';
 import authRoutes from './routes/authRoutes';
+import generalRoutes from './routes/generalRoutes';
 import jobRoutes from './routes/jobRoutes';
 
 // base path
@@ -31,6 +32,7 @@ app.use(cors(corsOptions));
 app.use(`${BASE_PATH}/admin`, adminRoutes);
 app.use(`${BASE_PATH}/auth`, authRoutes);
 app.use(`${BASE_PATH}/jobs`, jobRoutes);
+app.use(`${BASE_PATH}/general`, generalRoutes);
 
 // customize error handler
 app.use(errorHandler);

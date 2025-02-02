@@ -18,6 +18,10 @@ router.post('/signup', validateSignupData_1.default, authController_1.signupCont
 router.post('/signin', validateSigninData_1.default, authController_1.signinController);
 // password change
 router.patch('/password-change', checkAuth_1.default, validatePasswordChangeData_1.default, authController_1.passwordChange);
+// logout
+router.post('/logout', checkAuth_1.default, authController_1.logoutController);
+// get profile
+router.get('/profile', checkAuth_1.default, authController_1.getProfile);
 // add address
 router.patch('/change-address', checkAuth_1.default, validateAddAddressData_1.default, authController_1.addAddressController);
 // add resume

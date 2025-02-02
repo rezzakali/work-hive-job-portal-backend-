@@ -8,11 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addResumeController = exports.addAddressController = exports.passwordChange = exports.signinController = exports.signupController = void 0;
+exports.getProfile = exports.addResumeController = exports.addAddressController = exports.passwordChange = exports.logoutController = exports.signinController = exports.signupController = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const app_config_1 = __importDefault(require("../config/app.config"));
@@ -30,7 +41,7 @@ const signupController = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             return next(new error_1.default('User already exists!', 403));
         }
         //   hashed password
-        const hashedPassword = bcryptjs_1.default.hashSync(password, app_config_1.default.SALT_ROUND);
+        const hashedPassword = bcryptjs_1.default.hashSync(password, Number(app_config_1.default.SALT_ROUND));
         const newUser = new userModel_1.default(Object.assign(Object.assign({}, req.body), { password: hashedPassword }));
         // finally save to database
         yield newUser.save();
@@ -64,8 +75,16 @@ const signinController = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             return next(new error_1.default('Invalid credentials!', http_config_1.HTTPSTATUS.BAD_REQUEST));
         }
         // generate a jwt token
-        const token = jsonwebtoken_1.default.sign({ _id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRE_IN, // 30 days
+        const token = jsonwebtoken_1.default.sign({ _id: user._id }, app_config_1.default.JWT.SECRET, {
+            expiresIn: app_config_1.default.JWT.EXPIRES_IN, // 30 days
+        });
+        const COOKIE_EXPIRATION = parseInt(app_config_1.default.COOKIE_EXPIRATION || '30', 10) * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+        // Set the token as a cookie
+        res.cookie('jwt', token, {
+            httpOnly: app_config_1.default.NODE_ENV === 'production' ? true : false,
+            secure: app_config_1.default.NODE_ENV === 'production',
+            sameSite: app_config_1.default.NODE_ENV === 'production' ? 'strict' : 'none',
+            maxAge: COOKIE_EXPIRATION, // Cookie expiry in milliseconds (30d)
         });
         res.status(http_config_1.HTTPSTATUS.OK).json({
             success: true,
@@ -79,6 +98,27 @@ const signinController = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.signinController = signinController;
+// logout controller
+// Logout Controller
+const logoutController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Clear the authentication token or session cookie
+        res.clearCookie('client.sid', {
+            httpOnly: true,
+            secure: app_config_1.default.NODE_ENV === 'production',
+            sameSite: 'strict',
+        });
+        // Respond with a success message
+        return res
+            .status(http_config_1.HTTPSTATUS.OK)
+            .json({ message: 'Logged out successfully!' });
+    }
+    catch (error) {
+        // Handle any potential errors
+        return next(new error_1.default('Error logging out. Please try again.', http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
+    }
+});
+exports.logoutController = logoutController;
 // Password-change
 const passwordChange = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -95,7 +135,7 @@ const passwordChange = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             return next(new error_1.default('Incorrect old password', http_config_1.HTTPSTATUS.UNAUTHORIZED));
         }
         // Hash the new password
-        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, app_config_1.default.SALT_ROUND);
+        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, Number(app_config_1.default.SALT_ROUND));
         // udpate the password
         user.password = hashedPassword;
         yield user.save();
@@ -127,7 +167,7 @@ const addAddressController = (req, res, next) => __awaiter(void 0, void 0, void 
         next();
     }
     catch (error) {
-        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
+        return next(new error_1.default((error === null || error === void 0 ? void 0 : error.message) || 'Internal server error!', http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
     }
 });
 exports.addAddressController = addAddressController;
@@ -155,3 +195,22 @@ const addResumeController = (req, res, next) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.addResumeController = addResumeController;
+// get profile
+const getProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { _id } = req.user;
+        if (!_id) {
+            return next(new error_1.default('Id is required', http_config_1.HTTPSTATUS.BAD_REQUEST));
+        }
+        const user = yield userModel_1.default.findById(_id);
+        if (!user) {
+            return next(new error_1.default('Invalid credentials', http_config_1.HTTPSTATUS.NOT_FOUND));
+        }
+        const _a = user.toObject(), { password } = _a, rest = __rest(_a, ["password"]);
+        res.status(200).json({ success: true, data: rest });
+    }
+    catch (error) {
+        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
+    }
+});
+exports.getProfile = getProfile;

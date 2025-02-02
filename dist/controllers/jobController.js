@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateApplicantStatusController = exports.getApplicantsController = exports.getEmployerJobsController = exports.closeJobController = exports.applyJobController = exports.updateJobController = exports.postAJobController = exports.getJobsDetailsController = exports.getJobsController = void 0;
+exports.checkApplicationStatus = exports.updateApplicantStatusController = exports.getApplicantsController = exports.getEmployerJobsController = exports.closeJobController = exports.applyJobController = exports.updateJobController = exports.postAJobController = exports.getJobsDetailsController = exports.getJobsController = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const http_config_1 = require("../config/http.config");
 const applicationModel_1 = __importDefault(require("../models/applicationModel"));
@@ -376,3 +376,33 @@ const updateApplicantStatusController = (req, res, next) => __awaiter(void 0, vo
     }
 });
 exports.updateApplicantStatusController = updateApplicantStatusController;
+// ######## FIND OUT APPLICANTS ################
+const checkApplicationStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user._id; // Get user ID from authentication middleware
+        const { jobId } = req.params;
+        if (!jobId) {
+            return res
+                .status(http_config_1.HTTPSTATUS.BAD_REQUEST)
+                .json({ error: 'Job ID is required' });
+        }
+        // Check if the user has already applied to the job
+        const existingApplication = yield applicationModel_1.default.findOne({ userId, jobId });
+        if (existingApplication) {
+            return res.status(http_config_1.HTTPSTATUS.OK).json({
+                success: true,
+                message: 'You have already applied to this job',
+                data: true,
+            });
+        }
+        return res.status(http_config_1.HTTPSTATUS.OK).json({
+            success: true,
+            message: 'You have not applied to this job',
+            data: false,
+        });
+    }
+    catch (error) {
+        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
+    }
+});
+exports.checkApplicationStatus = checkApplicationStatus;

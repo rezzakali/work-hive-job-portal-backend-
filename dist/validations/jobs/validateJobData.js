@@ -31,7 +31,8 @@ const validateJobData = [
         .isIn(['entry-level', 'mid-level', 'senior-level'])
         .withMessage('Invalid experience level'),
     (0, express_validator_1.body)('skills')
-        .optional()
+        .notEmpty()
+        .withMessage('Skills is required!')
         .isArray()
         .withMessage('Skills must be an array')
         .isArray({ min: 1 })
