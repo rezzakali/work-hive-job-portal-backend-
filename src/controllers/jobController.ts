@@ -350,6 +350,10 @@ export const getEmployerJobsController = async (
 ) => {
   try {
     const { userId } = req.params;
+    console.log('Incoming request:', req.method, req.url);
+    console.log('Headers:', req.headers);
+    console.log('Fetching job for employer ID:', userId);
+
     if (!userId) {
       return next(
         new ErrorResponse('userId is required!', HTTPSTATUS.BAD_REQUEST)
@@ -367,6 +371,8 @@ export const getEmployerJobsController = async (
 
     res.status(HTTPSTATUS.OK).json({ success: true, data: jobs });
   } catch (error) {
+    console.error('Error in GET /jobs/employer/:id:', error);
+
     return next(
       new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
     );
