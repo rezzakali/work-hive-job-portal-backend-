@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import config from '../config/app.config';
 import { HTTPSTATUS } from '../config/http.config';
 import ErrorResponse from '../utils/error';
 
@@ -22,10 +23,13 @@ const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (!token) {
       return next(new ErrorResponse('Not Authenticated', HTTPSTATUS.FORBIDDEN));
     }
-    // Verify token
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
-    next();
+    try {
+      const verified = jwt.verify(token, config.JWT.SECRET);
+      req.user = verified;
+      next();
+    } catch (error) {
+      return next(new ErrorResponse('Invalid Token', HTTPSTATUS.FORBIDDEN));
+    }
   } catch (error) {
     return next(
       new ErrorResponse(

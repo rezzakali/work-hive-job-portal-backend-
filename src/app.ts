@@ -4,7 +4,6 @@ import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
 import config from './config/app.config';
-import corsOptions from './config/cors.config';
 import { HTTPSTATUS } from './config/http.config';
 import errorHandler from './helpers/errorHandler';
 import adminRoutes from './routes/adminRoutes';
@@ -28,7 +27,14 @@ app.use(cookieParser());
 // Allow preflight requests for all routes
 app.options('*', cors());
 // cors-policy
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: '*',
+    methods: '*',
+    credentials: true,
+  })
+);
 
 // routes
 app.use(`${BASE_PATH}/admin`, adminRoutes);

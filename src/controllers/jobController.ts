@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 import nodemailer from 'nodemailer';
 import { HTTPSTATUS } from '../config/http.config';
 import Application from '../models/applicationModel';
@@ -350,17 +350,17 @@ export const getEmployerJobsController = async (
 ) => {
   try {
     const { userId } = req.params;
-    console.log('Incoming request:', req.method, req.url);
-    console.log('Headers:', req.headers);
-    console.log('Fetching job for employer ID:', userId);
-
     if (!userId) {
       return next(
         new ErrorResponse('userId is required!', HTTPSTATUS.BAD_REQUEST)
       );
     }
+
     // Fetch all job listings created by the specific employer
-    const jobs = await Job.find({ createdBy: userId }).exec();
+    const jobs = await Job.find({
+      createdBy: new mongoose.Types.ObjectId(userId),
+    }).exec();
+
     if (!jobs || jobs.length === 0) {
       return res.status(HTTPSTATUS.NOT_FOUND).json({
         success: false,
@@ -371,11 +371,11 @@ export const getEmployerJobsController = async (
 
     res.status(HTTPSTATUS.OK).json({ success: true, data: jobs });
   } catch (error) {
-    console.error('Error in GET /jobs/employer/:id:', error);
-
-    return next(
-      new ErrorResponse(error?.message, HTTPSTATUS.INTERNAL_SERVER_ERROR)
-    );
+    return res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Something went wrong!',
+      error: error?.message || 'Unknown error',
+    });
   }
 };
 

@@ -9,7 +9,7 @@ import {
   getJobsDetailsController,
   postAJobController,
   updateApplicantStatusController,
-  updateJobController
+  updateJobController,
 } from '../controllers/jobController';
 import checkAuth from '../middleware/checkAuth';
 import checkUserRole from '../middleware/checkUserRole';
