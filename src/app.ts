@@ -8,7 +8,6 @@ import { HTTPSTATUS } from './config/http.config';
 import errorHandler from './helpers/errorHandler';
 import adminRoutes from './routes/adminRoutes';
 import authRoutes from './routes/authRoutes';
-import generalRoutes from './routes/generalRoutes';
 import jobRoutes from './routes/jobRoutes';
 
 // base path
@@ -44,7 +43,7 @@ app.use(
 app.use(`${BASE_PATH}/admin`, adminRoutes);
 app.use(`${BASE_PATH}/auth`, authRoutes);
 app.use(`${BASE_PATH}/jobs`, jobRoutes);
-app.use(`${BASE_PATH}/general`, generalRoutes);
+// app.use(`${BASE_PATH}/general`, generalRoutes);
 // app.use(`${BASE_PATH}/test`, async (req, res) => {
 //   try {
 //     // Assuming you have a Notification model and a deleteMany method
