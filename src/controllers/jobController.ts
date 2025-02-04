@@ -79,11 +79,11 @@ export const getJobsController = async (
       query.$and = cleanedQuery;
     }
 
-    // Build sort options based on sortBy query parameter
-    let sortOptions: { [key: string]: 1 | -1 } = {};
+    // Build sort options based on sortBy query parameter, default to descending order
+    let sortOptions: { [key: string]: 1 | -1 } = { createdAt: -1 };
 
     if (sortField && (sortValue === '1' || sortValue === '-1')) {
-      sortOptions[sortField] = parseInt(sortValue) as 1 | -1;
+      sortOptions = { [sortField]: parseInt(sortValue) as 1 | -1 };
     }
 
     // Specify the fields to include in the response
@@ -194,8 +194,8 @@ export const updateJobController = async (
   next: NextFunction
 ) => {
   try {
-    const { jobId, data } = req.body;
-    const updatedJob = await Job.findByIdAndUpdate({ _id: jobId }, data, {
+    const { jobId, ...rest } = req.body;
+    const updatedJob = await Job.findByIdAndUpdate({ _id: jobId }, rest, {
       new: true,
     });
     res.status(HTTPSTATUS.OK).json({ success: true, data: updatedJob });
@@ -359,7 +359,9 @@ export const getEmployerJobsController = async (
     // Fetch all job listings created by the specific employer
     const jobs = await Job.find({
       createdBy: new mongoose.Types.ObjectId(userId),
-    }).exec();
+    })
+      .sort({ createdAt: -1 }) // Sort by createdAt field in descending order
+      .exec();
 
     if (!jobs || jobs.length === 0) {
       return res.status(HTTPSTATUS.NOT_FOUND).json({

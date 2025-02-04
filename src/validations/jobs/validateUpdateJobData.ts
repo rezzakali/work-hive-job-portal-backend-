@@ -10,41 +10,41 @@ const validateUpdateJobData = [
     .withMessage('Invalid job id')
     .isString()
     .withMessage('Invalid job id'),
-  body('data.title')
+  body('title')
     .notEmpty()
     .withMessage('Title is required!')
     .isString()
     .withMessage('Title must be a string'),
 
-  body('data.description')
+  body('description')
     .notEmpty()
     .withMessage('Description is required!')
     .isString()
     .withMessage('Description must be a string'),
 
-  body('data.company')
+  body('company')
     .notEmpty()
     .withMessage('Company is required!')
     .isString()
     .withMessage('Company must be a string'),
 
-  body('data.location')
+  body('location')
     .notEmpty()
     .withMessage('Location is required!')
     .isString()
     .withMessage('Location must be a string'),
 
-  body('data.salary').notEmpty().withMessage('Salary is required!'),
+  body('salary').notEmpty().withMessage('Salary is required!'),
 
-  body('data.employmentType')
+  body('employmentType')
     .isIn(['full-time', 'part-time', 'contract', 'freelance', 'internship'])
     .withMessage('Invalid employment type'),
 
-  body('data.experienceLevel')
+  body('experienceLevel')
     .isIn(['entry-level', 'mid-level', 'senior-level'])
     .withMessage('Invalid experience level'),
 
-  body('data.skills')
+  body('skills')
     .optional()
     .isArray()
     .withMessage('Skills must be an array')
