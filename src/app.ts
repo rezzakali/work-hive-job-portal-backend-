@@ -2,11 +2,9 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import http from 'http';
 import morgan from 'morgan';
 import config from './config/app.config';
 import { HTTPSTATUS } from './config/http.config';
-import { initSocket } from './config/socket.config';
 import errorHandler from './helpers/errorHandler';
 import adminRoutes from './routes/adminRoutes';
 import authRoutes from './routes/authRoutes';
@@ -19,8 +17,8 @@ const BASE_PATH = config.BASE_PATH;
 const app = express();
 
 // socket
-const server = http.createServer(app);
-initSocket(server); // Initialize WebSocket
+// const server = http.createServer(app);
+// initSocket(server); // Initialize WebSocket
 
 // morgan config
 app.use(morgan('tiny'));

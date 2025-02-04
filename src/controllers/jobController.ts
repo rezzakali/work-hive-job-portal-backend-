@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import mongoose, { FilterQuery } from 'mongoose';
 import nodemailer from 'nodemailer';
 import { HTTPSTATUS } from '../config/http.config';
-import { io } from '../config/socket.config';
 import Application from '../models/applicationModel';
 import Job from '../models/jobModel';
 import Notification from '../models/notificationModel';
@@ -192,7 +191,7 @@ export const postAJobController = async (
     await notification.save();
 
     // Notify all connected users via WebSocket
-    io.emit('newJobNotification', { message: `New job posted: ${title}` });
+    // io.emit('newJobNotification', { message: `New job posted: ${title}` });
 
     // Respond after all operations complete
     res.status(HTTPSTATUS.CREATED).json({ success: true, data: job });
