@@ -58,7 +58,9 @@ export const getUnreadNotifications = async (
       .skip(skip)
       .limit(Number(limit))
       .lean();
-    res.status(HTTPSTATUS.OK).json({ success: true, data: notifications });
+    res
+      .status(HTTPSTATUS.OK)
+      .json({ success: true, data: notifications || [] });
     next();
   } catch (error) {
     return next(
