@@ -2,8 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import mongoose, { FilterQuery } from 'mongoose';
 import nodemailer from 'nodemailer';
 import { HTTPSTATUS } from '../config/http.config';
+import { io } from '../config/socket.config';
 import Application from '../models/applicationModel';
 import Job from '../models/jobModel';
+import Notification from '../models/notificationModel';
 import User from '../models/userModel';
 import ErrorResponse from '../utils/error';
 import uploadToImageKit from '../utils/imageUploadToImageKit';
@@ -170,15 +172,29 @@ export const postAJobController = async (
   next: NextFunction
 ) => {
   try {
+    const { title } = req.body;
+
     // Create a new job document
     const job = new Job(req.body);
 
     // Set createdBy field to the user's ID
     job.createdBy = req.user._id;
 
-    // Save the job document
-    await job.save();
+    // Save the job first
+    await job.save(); // Save before sending notifications
 
+    const notification = new Notification({
+      jobId: job._id, // Save jobId for navigation
+      message: `New job posted: ${title}`,
+      type: 'new_job',
+    });
+
+    await notification.save();
+
+    // Notify all connected users via WebSocket
+    io.emit('newJobNotification', { message: `New job posted: ${title}` });
+
+    // Respond after all operations complete
     res.status(HTTPSTATUS.CREATED).json({ success: true, data: job });
   } catch (error) {
     return next(

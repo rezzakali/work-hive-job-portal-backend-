@@ -1,13 +1,7 @@
 import { CorsOptions } from '../@types';
-import config from './app.config';
+import origins from '../utils/cors.origins';
 
-const allowedOrigins =
-  config.NODE_ENV === 'development'
-    ? ['http://localhost:3000', 'http://localhost:5173'] // Development front-end origin and dashboard
-    : [
-        'https://job-portal-dashboard.vercel.app',
-        'https://workshive.netlify.app',
-      ]; // Production front-end origin dashboard
+const allowedOrigins = origins;
 
 const corsOptions: CorsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
