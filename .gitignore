@@ -2,3 +2,8 @@ node_modules
 yarn-error.log
 logs
 .env
+
+# Ignore Firebase Service Account Key
+src/config/serviceAccountKey.json
+dist/config/serviceAccountKey.json
+
