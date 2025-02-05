@@ -5,7 +5,8 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "target": "ES6",
-    "module": "CommonJS"
+    "module": "CommonJS",
+    "resolveJsonModule": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

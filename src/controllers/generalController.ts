@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { HTTPSTATUS } from '../config/http.config';
 import Contact from '../models/contact';
+import FCMToken from '../models/fcmTokenModel';
 import Notification from '../models/notificationModel';
 import ErrorResponse from '../utils/error';
 
@@ -101,6 +102,46 @@ export const markNotificationRead = async (
     return next(
       new ErrorResponse(
         error?.message || 'There was a server side error!',
+        HTTPSTATUS.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
+// save fcm token
+
+export const saveFcmToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token } = req.body;
+    const userId = req.user._id;
+
+    if (!userId || !token) {
+      return res
+        .status(HTTPSTATUS.BAD_GATEWAY)
+        .json({ message: 'User ID and token are required' });
+    }
+
+    // Check if token exists, update it if needed
+    const existingToken = await FCMToken.findOne({ userId });
+
+    if (existingToken) {
+      existingToken.token = token;
+      await existingToken.save();
+    } else {
+      await FCMToken.create({ userId, token });
+    }
+
+    return res
+      .status(HTTPSTATUS.OK)
+      .json({ message: 'FCM token saved successfully' });
+  } catch (error) {
+    return next(
+      new ErrorResponse(
+        error?.message || 'Internal server error!',
         HTTPSTATUS.INTERNAL_SERVER_ERROR
       )
     );

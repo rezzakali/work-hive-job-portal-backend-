@@ -2,11 +2,9 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import http from 'http';
 import morgan from 'morgan';
 import config from './config/app.config';
 import { HTTPSTATUS } from './config/http.config';
-import { initSocket } from './config/socket.config';
 import errorHandler from './helpers/errorHandler';
 import adminRoutes from './routes/adminRoutes';
 import authRoutes from './routes/authRoutes';
@@ -17,10 +15,6 @@ import jobRoutes from './routes/jobRoutes';
 const BASE_PATH = config.BASE_PATH;
 
 const app = express();
-
-// socket
-const server = http.createServer(app);
-initSocket(server); // Initialize WebSocket
 
 // morgan config
 app.use(morgan('tiny'));
@@ -47,21 +41,8 @@ app.use(`${BASE_PATH}/admin`, adminRoutes);
 app.use(`${BASE_PATH}/auth`, authRoutes);
 app.use(`${BASE_PATH}/jobs`, jobRoutes);
 app.use(`${BASE_PATH}/general`, generalRoutes);
-// app.use(`${BASE_PATH}/test`, async (req, res) => {
-//   try {
-//     // Assuming you have a Notification model and a deleteMany method
-//     const result = await Notification.deleteMany({});
-//     res
-//       .status(200)
-//       .json({ message: 'All notifications deleted successfully', result });
-//   } catch (error) {
-//     console.log('🚀 ~ app.use ~ error:', error);
-//     res.status(500).json({ error: 'Failed to delete notifications' });
-//   }
-// });
 
 // customize error handler
-
 app.use(errorHandler);
 
 // default error

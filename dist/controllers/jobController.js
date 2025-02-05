@@ -8,26 +8,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkApplicationStatus = exports.updateApplicantStatusController = exports.getApplicantsController = exports.getEmployerJobsController = exports.closeJobController = exports.applyJobController = exports.updateJobController = exports.postAJobController = exports.getJobsDetailsController = exports.getJobsController = void 0;
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const http_config_1 = require("../config/http.config");
 const applicationModel_1 = __importDefault(require("../models/applicationModel"));
+const fcmTokenModel_1 = __importDefault(require("../models/fcmTokenModel"));
 const jobModel_1 = __importDefault(require("../models/jobModel"));
+const notificationModel_1 = __importDefault(require("../models/notificationModel"));
 const userModel_1 = __importDefault(require("../models/userModel"));
 const error_1 = __importDefault(require("../utils/error"));
 const imageUploadToImageKit_1 = __importDefault(require("../utils/imageUploadToImageKit"));
-// Create a transporter using Gmail SMTP
-const transporter = nodemailer_1.default.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.MY_EMAIL,
-        pass: process.env.MY_PASSWORD, // Your Gmail password (Use App Password for better security)
-    },
-});
+const send_notification_1 = __importDefault(require("../utils/send-notification"));
 // GET JOBS
 const getJobsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -78,10 +84,10 @@ const getJobsController = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         else {
             query.$and = cleanedQuery;
         }
-        // Build sort options based on sortBy query parameter
-        let sortOptions = {};
+        // Build sort options based on sortBy query parameter, default to descending order
+        let sortOptions = { createdAt: -1 };
         if (sortField && (sortValue === '1' || sortValue === '-1')) {
-            sortOptions[sortField] = parseInt(sortValue);
+            sortOptions = { [sortField]: parseInt(sortValue) };
         }
         // Specify the fields to include in the response
         const fieldsToInclude = [
@@ -147,12 +153,28 @@ exports.getJobsDetailsController = getJobsDetailsController;
 // POST A JOB
 const postAJobController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Create a new job document
-        const job = new jobModel_1.default(req.body);
-        // Set createdBy field to the user's ID
-        job.createdBy = req.user._id;
-        // Save the job document
+        const userId = req.user._id;
+        // 1️⃣ Create and save the job
+        const job = new jobModel_1.default(Object.assign(Object.assign({}, req.body), { createdBy: userId }));
         yield job.save();
+        // 2️⃣ Create and save a SINGLE notification
+        const notification = new notificationModel_1.default({
+            jobId: job._id,
+            message: `New job posted: ${job.title}`,
+            type: 'new_job',
+        });
+        yield notification.save();
+        // 3️⃣ Fetch all FCM tokens
+        const fcmTokens = yield fcmTokenModel_1.default.find({
+            token: { $exists: true, $ne: null },
+        });
+        // Extract token list
+        const tokens = fcmTokens.map((fcmToken) => fcmToken.token);
+        // 4️⃣ Send push notifications if users have tokens
+        if (tokens.length > 0) {
+            yield (0, send_notification_1.default)(tokens, 'New Job Alert', `New job posted: ${job.title}`);
+        }
+        // 5️⃣ Respond successfully
         res.status(http_config_1.HTTPSTATUS.CREATED).json({ success: true, data: job });
     }
     catch (error) {
@@ -163,8 +185,8 @@ exports.postAJobController = postAJobController;
 // UPDATE A JOB
 const updateJobController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { jobId, data } = req.body;
-        const updatedJob = yield jobModel_1.default.findByIdAndUpdate({ _id: jobId }, data, {
+        const _a = req.body, { jobId } = _a, rest = __rest(_a, ["jobId"]);
+        const updatedJob = yield jobModel_1.default.findByIdAndUpdate({ _id: jobId }, rest, {
             new: true,
         });
         res.status(http_config_1.HTTPSTATUS.OK).json({ success: true, data: updatedJob });
@@ -290,16 +312,26 @@ const getEmployerJobsController = (req, res, next) => __awaiter(void 0, void 0, 
             return next(new error_1.default('userId is required!', http_config_1.HTTPSTATUS.BAD_REQUEST));
         }
         // Fetch all job listings created by the specific employer
-        const jobs = yield jobModel_1.default.find({ createdBy: userId });
+        const jobs = yield jobModel_1.default.find({
+            createdBy: new mongoose_1.default.Types.ObjectId(userId),
+        })
+            .sort({ createdAt: -1 }) // Sort by createdAt field in descending order
+            .exec();
         if (!jobs || jobs.length === 0) {
-            return res
-                .status(http_config_1.HTTPSTATUS.NOT_FOUND)
-                .json({ success: false, message: 'No jobs found for this employer!' });
+            return res.status(http_config_1.HTTPSTATUS.NOT_FOUND).json({
+                success: false,
+                message: 'No jobs found for this employer!',
+                data: jobs,
+            });
         }
         res.status(http_config_1.HTTPSTATUS.OK).json({ success: true, data: jobs });
     }
     catch (error) {
-        return next(new error_1.default(error === null || error === void 0 ? void 0 : error.message, http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR));
+        return res.status(http_config_1.HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Something went wrong!',
+            error: (error === null || error === void 0 ? void 0 : error.message) || 'Unknown error',
+        });
     }
 });
 exports.getEmployerJobsController = getEmployerJobsController;

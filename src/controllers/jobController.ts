@@ -1,22 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose, { FilterQuery } from 'mongoose';
-import nodemailer from 'nodemailer';
 import { HTTPSTATUS } from '../config/http.config';
 import Application from '../models/applicationModel';
+import FCMToken from '../models/fcmTokenModel';
 import Job from '../models/jobModel';
 import Notification from '../models/notificationModel';
 import User from '../models/userModel';
 import ErrorResponse from '../utils/error';
 import uploadToImageKit from '../utils/imageUploadToImageKit';
-
-// Create a transporter using Gmail SMTP
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.MY_EMAIL, // Your Gmail address
-    pass: process.env.MY_PASSWORD, // Your Gmail password (Use App Password for better security)
-  },
-});
+import sendNotification from '../utils/send-notification';
 
 // GET JOBS
 export const getJobsController = async (
@@ -171,29 +163,38 @@ export const postAJobController = async (
   next: NextFunction
 ) => {
   try {
-    const { title } = req.body;
+    const userId = req.user._id;
 
-    // Create a new job document
-    const job = new Job(req.body);
+    // 1️⃣ Create and save the job
+    const job = new Job({ ...req.body, createdBy: userId });
+    await job.save();
 
-    // Set createdBy field to the user's ID
-    job.createdBy = req.user._id;
-
-    // Save the job first
-    await job.save(); // Save before sending notifications
-
+    // 2️⃣ Create and save a SINGLE notification
     const notification = new Notification({
-      jobId: job._id, // Save jobId for navigation
-      message: `New job posted: ${title}`,
+      jobId: job._id,
+      message: `New job posted: ${job.title}`,
       type: 'new_job',
     });
-
     await notification.save();
 
-    // Notify all connected users via WebSocket
-    // io.emit('newJobNotification', { message: `New job posted: ${title}` });
+    // 3️⃣ Fetch all FCM tokens
+    const fcmTokens = await FCMToken.find({
+      token: { $exists: true, $ne: null },
+    });
 
-    // Respond after all operations complete
+    // Extract token list
+    const tokens = fcmTokens.map((fcmToken) => fcmToken.token);
+
+    // 4️⃣ Send push notifications if users have tokens
+    if (tokens.length > 0) {
+      await sendNotification(
+        tokens,
+        'New Job Alert',
+        `New job posted: ${job.title}`
+      );
+    }
+
+    // 5️⃣ Respond successfully
     res.status(HTTPSTATUS.CREATED).json({ success: true, data: job });
   } catch (error) {
     return next(

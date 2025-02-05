@@ -10,34 +10,34 @@ const validateUpdateJobData = [
         .withMessage('Invalid job id')
         .isString()
         .withMessage('Invalid job id'),
-    (0, express_validator_1.body)('data.title')
+    (0, express_validator_1.body)('title')
         .notEmpty()
         .withMessage('Title is required!')
         .isString()
         .withMessage('Title must be a string'),
-    (0, express_validator_1.body)('data.description')
+    (0, express_validator_1.body)('description')
         .notEmpty()
         .withMessage('Description is required!')
         .isString()
         .withMessage('Description must be a string'),
-    (0, express_validator_1.body)('data.company')
+    (0, express_validator_1.body)('company')
         .notEmpty()
         .withMessage('Company is required!')
         .isString()
         .withMessage('Company must be a string'),
-    (0, express_validator_1.body)('data.location')
+    (0, express_validator_1.body)('location')
         .notEmpty()
         .withMessage('Location is required!')
         .isString()
         .withMessage('Location must be a string'),
-    (0, express_validator_1.body)('data.salary').notEmpty().withMessage('Salary is required!'),
-    (0, express_validator_1.body)('data.employmentType')
+    (0, express_validator_1.body)('salary').notEmpty().withMessage('Salary is required!'),
+    (0, express_validator_1.body)('employmentType')
         .isIn(['full-time', 'part-time', 'contract', 'freelance', 'internship'])
         .withMessage('Invalid employment type'),
-    (0, express_validator_1.body)('data.experienceLevel')
+    (0, express_validator_1.body)('experienceLevel')
         .isIn(['entry-level', 'mid-level', 'senior-level'])
         .withMessage('Invalid experience level'),
-    (0, express_validator_1.body)('data.skills')
+    (0, express_validator_1.body)('skills')
         .optional()
         .isArray()
         .withMessage('Skills must be an array')
