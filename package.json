@@ -32,7 +32,7 @@
 		"@types/nodemailer": "^6.4.14",
 		"@types/socket.io": "^3.0.1",
 		"nodemon": "^3.1.9",
-		"pre-commit": "^1.0.10",
+		"pre-commit": "^1.2.2",
 		"rimraf": "^5.0.6",
 		"ts-node": "^10.9.2",
 		"ts-node-dev": "^2.0.0",
