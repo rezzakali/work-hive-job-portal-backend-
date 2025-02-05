@@ -3,3 +3,5 @@ yarn-error.log
 logs
 .env
 
+src/config/serviceAccountKey.json
+dist/config/serviceAccountKey.json
